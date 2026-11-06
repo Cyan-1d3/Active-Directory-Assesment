@@ -1,7 +1,6 @@
 
 Technical Assessment Report: Internal Active Directory Penetration Test
 
-Prepared By: Information Security Consultant
 Target Domain: spookysec.local
 Assessment Type: Internal Network & Infrastructure Architecture Audit
 Objective: Evaluate the security posture of the internal enterprise network, map potential attack paths stemming from an unauthenticated network position, and identify systemic Active Directory (AD) misconfigurations that could lead to unauthorized privilege escalation.
