@@ -1,4 +1,5 @@
 
+'''
 Technical Assessment Report: Internal Active Directory Penetration Test
 
 Target Domain: spookysec.local
@@ -127,3 +128,4 @@ The execution successfully instantiated an interactive command console running u
 
 • Replication Rights Audit: Remove highly permissive synchronization capabilities (DS-Replication-Get-Changes-All) from standard user identities or standard service groups. These specific operational privileges must strictly be restricted to legitimate, verified domain controllers.
 • Implement Advanced Monitoring Indicators: Configure centralized auditing frameworks (SIEM) to trigger high-priority alerts on Event ID 4662 (Operation performed on an Active Directory object) when an account requesting replication attributes does not belong to the authorized Domain Controllers security group.
+'''
